@@ -92,7 +92,7 @@ int app_camera_init() {
     s->set_brightness(s, -2);        // Reducir brillo
     s->set_contrast(s, -2);          // Reducir contraste
     s->set_exposure_ctrl(s, 0);      // Desactivar exposición automática
-    s->set_aec_value(s, 100);        // Reducir exposición manualmente
+    s->set_aec_value(s, 10);        // Reducir exposición manualmente
     s->set_gain_ctrl(s, 0);           // Desactivar ganancia automática
     s->set_gainceiling(s, GAINCEILING_2X);  // Limitar ganancia
 
