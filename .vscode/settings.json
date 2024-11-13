@@ -1,0 +1,10 @@
+{
+    "idf.adapterTargetName": "esp32",
+    "files.associations": {
+        "*.tcc": "cpp",
+        "algorithm": "cpp",
+        "mutex": "cpp",
+        "stop_token": "cpp",
+        "cam_hal.h": "c"
+    }
+}
