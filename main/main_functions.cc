@@ -182,62 +182,66 @@ void setup() {
 #ifndef CLI_ONLY_INFERENCE
 void loop() {
   if (start_loop && loop_counter < 4) {
-    if (kTfLiteOk != GetImage(kNumCols, kNumRows, kNumChannels, input->data.f)) {
-      MicroPrintf("Image capture failed.");
+    // Array to store the sum of scores across three images
+    float sign_scores_sum[kCategoryCount] = {0};
+
+    // Capture three images and accumulate their scores
+    for (int capture = 0; capture < 3; ++capture) {
+      if (kTfLiteOk != GetImage(kNumCols, kNumRows, kNumChannels, input->data.f)) {
+        MicroPrintf("Image capture failed.");
+        continue;
+      }
+
+      if (kTfLiteOk != interpreter->Invoke()) {
+        MicroPrintf("Invoke failed.");
+        continue;
+      }
+
+      TfLiteTensor* output = interpreter->output(0);
+
+      for (int i = 0; i < kCategoryCount; ++i) {
+        sign_scores_sum[i] += output->data.f[i]; // Accumulate scores
+      }
+      
+      // Small delay between captures (optional)
+      vTaskDelay(1000 / portTICK_RATE_MS);
     }
 
-    // for (int i = 0; i < kNumCols * kNumRows; i++) {
-    //   printf("%f, ", input->data.f[i]);
-    // }
-    // printf("\n");
-
-    if (kTfLiteOk != interpreter->Invoke()) {
-      MicroPrintf("Invoke failed.");
-    }
-
-    TfLiteTensor* output = interpreter->output(0);
-
-    printf("Input type: %s\n", TfLiteTypeGetName(input->type));
-    printf("Output type: %s\n", TfLiteTypeGetName(output->type));
-
-    float sign_scores[kCategoryCount];
+    // Average the scores across three captures
+    float sign_scores_avg[kCategoryCount];
     for (int i = 0; i < kCategoryCount; ++i) {
-      sign_scores[i] = output->data.f[i];
+      sign_scores_avg[i] = sign_scores_sum[i] / 3;
     }
 
+    // Find the category with the highest average score
     int max_score_index = 0;
-    float max_score = sign_scores[0];
+    float max_score = sign_scores_avg[0];
     for (int i = 1; i < kCategoryCount; ++i) {
-      if (sign_scores[i] > max_score) {
-        max_score = sign_scores[i];
+      if (sign_scores_avg[i] > max_score) {
+        max_score = sign_scores_avg[i];
         max_score_index = i;
       }
     }
-    char message[2] = {0}; 
-  if (max_score_index == 0) {
-      message[0] = 'A';
-      esp_now_send_data(peer_mac, (uint8_t*)message, sizeof(message));
-  } else if (max_score_index == 1) {
-      message[0] = 'B';
-      esp_now_send_data(peer_mac, (uint8_t*)message, sizeof(message));
-  } else if (max_score_index == 2) {
-      message[0] = 'C';
-      esp_now_send_data(peer_mac, (uint8_t*)message, sizeof(message));
-  } else if (max_score_index == 3) {
-      message[0] = 'D';
-      esp_now_send_data(peer_mac, (uint8_t*)message, sizeof(message));
-  } else if (max_score_index == 4) {
-      message[0] = 'E';
-      esp_now_send_data(peer_mac, (uint8_t*)message, sizeof(message));
-  } else if (max_score_index == 5) {
-      message[0] = 'F';
-      esp_now_send_data(peer_mac, (uint8_t*)message, sizeof(message));
-  }
+
+    // Send the corresponding message based on the highest average score
+    char message[2] = {0};
+    switch (max_score_index) {
+      case 0: message[0] = 'A'; break;
+      case 1: message[0] = 'B'; break;
+      case 2: message[0] = 'C'; break;
+      case 3: message[0] = 'D'; break;
+      case 4: message[0] = 'E'; break;
+      case 5: message[0] = 'F'; break;
+      default: break;
+    }
+    esp_now_send_data(peer_mac, (uint8_t*)message, sizeof(message));
 
     loop_counter++;
 
+    // Delay before the next loop
     vTaskDelay(7000 / portTICK_RATE_MS);
 
+    // Stop looping after 4 iterations
     if (loop_counter >= 4) {
       start_loop = false;
     }
