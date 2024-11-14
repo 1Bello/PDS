@@ -58,7 +58,7 @@ static void create_gui(void)
 }
 #endif // DISPLAY_SUPPORT
 
-char RespondToDetection(float* sign_score, const char* kCategoryLabels[]) {
+void RespondToDetection(float* sign_score, const char* kCategoryLabels[]) {
   // Find the sign with the highest score.
   float max_score = 0;
   int max_score_index = 0;
@@ -72,26 +72,8 @@ char RespondToDetection(float* sign_score, const char* kCategoryLabels[]) {
   // Log the detected sign.
   if (max_score > 0.5) {
     MicroPrintf("Detected sign: %s", kCategoryLabels[max_score_index]);
-    if (max_score_index == 0){
-      return 'A';
-    }
-    if (max_score_index == 1){
-      return 'B';
-    }
-    if (max_score_index == 2){
-      return 'C';
-    }
-    if (max_score_index == 3){
-      return 'D';
-    }
-    if (max_score_index == 4){
-      return 'E';
-    }
-    if (max_score_index == 5){
-      return 'F';
-    }
   } else {
     MicroPrintf("No sign detected");
   }
-  return 'X';
+  MicroPrintf("abierta: %f, cerrado: %f, pulgar: %f, rock: %f, tres dedos: %f, un dedo: %f", sign_score[0], sign_score[1], sign_score[2], sign_score[3], sign_score[4], sign_score[5]);
 }
