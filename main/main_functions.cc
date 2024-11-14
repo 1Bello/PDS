@@ -201,7 +201,36 @@ void loop() {
   for (int i = 0; i < kCategoryCount; ++i) {
     sign_scores[i] = output->data.f[i];
   }
-  RespondToDetection(sign_scores, kCategoryLabels);
+
+  int max_score_index = 0;
+  float max_score = sign_scores[0];
+  for (int i = 1; i < kCategoryCount; ++i) {
+    if (sign_scores[i] > max_score) {
+      max_score = sign_scores[i];
+      max_score_index = i;
+    }
+  }
+  if(max_score_index == 0){
+    esp_now_send_data(peer_mac, (uint8_t*) 'A', 32);
+  }
+  if(max_score_index == 1){
+    esp_now_send_data(peer_mac, (uint8_t*) 'B', 32);
+  }
+  if(max_score_index == 2){
+    esp_now_send_data(peer_mac, (uint8_t*) 'C', 32);
+  }
+  if(max_score_index == 3){
+    esp_now_send_data(peer_mac, (uint8_t*) 'D', 32);
+  }
+  if(max_score_index == 4){
+    esp_now_send_data(peer_mac, (uint8_t*) 'E', 32);
+  }
+  if(max_score_index == 5){
+    esp_now_send_data(peer_mac, (uint8_t*) 'F', 32);
+  }
+  
+
+  
   vTaskDelay(7000 / portTICK_RATE_MS);
 }
 #endif
@@ -277,6 +306,6 @@ void run_inference(void *ptr) {
   for (int i = 0; i < kCategoryCount; ++i) {
     sign_scores[i] = output->data.f[i];
   }
-  esp_now_send_data(peer_mac,RespondToDetection(sign_scores, kCategoryLabels), 32);
+  RespondToDetection(sign_scores, kCategoryLabels);
 }
 #endif
